@@ -15,5 +15,7 @@
 runtime: nodejs10
 service: slack-poll-app
 
-includes:
-  - .env.yaml
+env_variables:
+  CLIENT_ID: ""
+  CLIENT_SECRET: ""
+  VERIFY_TOKEN: ""

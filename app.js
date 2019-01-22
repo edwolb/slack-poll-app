@@ -282,42 +282,7 @@ app.get('/', (req, res) => {
 		}
 		let content = fs.readFileSync('README.md', {encoding:'utf8'});
 
-
-
-
-	// parse the markdown into a tree and grab the link references
-	var tree = markdown.parse( content ),
-		refs = tree[ 1 ].references;
-
-	// iterate through the tree finding link references
-	( function find_link_refs( jsonml ) {
-		if ( jsonml[ 0 ] === "link_ref" ) {
-			var ref = jsonml[ 1 ].ref;
-
-			// if there's no reference, define a wiki link
-			if ( !refs[ ref ] ) {
-				refs[ ref ] = {
-					href: "http://en.wikipedia.org/wiki/" + ref.replace(/\s+/, "_" )
-				};
-			}
-		}
-		else if ( Array.isArray( jsonml[ 1 ] ) ) {
-			jsonml[ 1 ].forEach( find_link_refs );
-		}
-		else if ( Array.isArray( jsonml[ 2 ] ) ) {
-			jsonml[ 2 ].forEach( find_link_refs );
-		}
-	} )( tree );
-
-	// convert the tree into html
-
-
-	var html = markdown.renderJsonML( markdown.toHTMLTree( tree ) );
-	console.log( html );
-
-		// html += "<img alt=\"screenshot\" src=\"screenshot.png\">";
-
-		// html += markdown.toHTML(content);
+		html += markdown.toHTML(content);
 		html += '</body></html>';
 	}
 	
