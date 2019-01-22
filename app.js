@@ -11,6 +11,8 @@ const dbName = process.env.CLOUDANT_DB || 'slack-poll';
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use('/public', express.static('public'))
+
 
 // env vars 
 if (!process.env.VERIFY_TOKEN) console.error('WARNING: missing env var VERIFY_TOKEN, will not validate requests');
@@ -279,7 +281,43 @@ app.get('/', (req, res) => {
 			html += util.format('<p><a href="https://slack.com/oauth/authorize?client_id=%s&scope=commands"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a></p>', process.env.CLIENT_ID);
 		}
 		let content = fs.readFileSync('README.md', {encoding:'utf8'});
-		html += markdown.toHTML(content);
+
+
+
+
+	// parse the markdown into a tree and grab the link references
+	var tree = markdown.parse( content ),
+		refs = tree[ 1 ].references;
+
+	// iterate through the tree finding link references
+	( function find_link_refs( jsonml ) {
+		if ( jsonml[ 0 ] === "link_ref" ) {
+			var ref = jsonml[ 1 ].ref;
+
+			// if there's no reference, define a wiki link
+			if ( !refs[ ref ] ) {
+				refs[ ref ] = {
+					href: "http://en.wikipedia.org/wiki/" + ref.replace(/\s+/, "_" )
+				};
+			}
+		}
+		else if ( Array.isArray( jsonml[ 1 ] ) ) {
+			jsonml[ 1 ].forEach( find_link_refs );
+		}
+		else if ( Array.isArray( jsonml[ 2 ] ) ) {
+			jsonml[ 2 ].forEach( find_link_refs );
+		}
+	} )( tree );
+
+	// convert the tree into html
+
+
+	var html = markdown.renderJsonML( markdown.toHTMLTree( tree ) );
+	console.log( html );
+
+		// html += "<img alt=\"screenshot\" src=\"screenshot.png\">";
+
+		// html += markdown.toHTML(content);
 		html += '</body></html>';
 	}
 	
